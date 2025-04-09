@@ -4,18 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build and Test Commands
 
+### Backend (FastAPI)
 - Run the API server: `python -m app.main`
 - Run all tests: `pytest`
 - Run a specific test: `pytest tests/test_file.py::test_function`
 - Run tests with verbose output: `pytest -v`
 - Test coverage: `pytest --cov=app`
 
+### Frontend (React)
+- Install dependencies: `cd frontend && npm install`
+- Start development server: `cd frontend && npm start`
+- Build for production: `cd frontend && npm run build`
+
 ## Project Structure
 
+### Backend (FastAPI)
 - FastAPI application with SQLAlchemy ORM for database access
 - Two main resources: Plants and Plantings
 - Plants have restricted categories: "green", "tomato", "pepper", "vegetable", "herb", "flower"
 - Plantings track when and where plants were planted with year, timestamps, and location
+
+### Frontend (React)
+- React application with Material UI for components
+- React Router for navigation
+- Axios for API requests
+- Pages: Home, Plants, PlantDetails, Plantings
+- Components organized in `/components` directory
 
 ## Code Style Guidelines
 
