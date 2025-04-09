@@ -24,11 +24,18 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  Grid
+  Grid,
+  Collapse,
+  Chip,
+  Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import SeedlingIcon from '@mui/icons-material/Spa';
+import TransplantIcon from '@mui/icons-material/Grass';
 import { 
   getPlantsAPI, 
   getPlantingsAPI, 
@@ -36,7 +43,132 @@ import {
   updatePlantingAPI, 
   deletePlantingAPI 
 } from '../services/api';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
+import PlantingDates from '../components/PlantingDates';
+import { calculatePlantingDates } from '../utils/dateCalculations';
+
+// Helper functions to calculate recommended dates
+const calculateSeedlingsDate = (plant, year) => {
+  // April 18 is the last frost date
+  const lastFrostDate = new Date(year, 3, 18); // Month is 0-indexed (3 = April)
+  return addDays(lastFrostDate, plant.seedlings);
+};
+
+const calculateTransplantDate = (plant, year) => {
+  // April 18 is the last frost date
+  const lastFrostDate = new Date(year, 3, 18); // Month is 0-indexed (3 = April)
+  return addDays(lastFrostDate, plant.transplant);
+};
+
+// Expandable row component
+function Row(props) {
+  const { planting, getPlantName, handleOpenDialog, handleDelete, filterYear } = props;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <React.Fragment>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <Tooltip title={open ? "Hide recommended dates" : "Show recommended dates based on this plant's frost data"}>
+            <IconButton
+              aria-label="expand row"
+              size="small"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </Tooltip>
+        </TableCell>
+        <TableCell component="th" scope="row">
+          <Button
+            component={RouterLink}
+            to={`/plants/${planting.plant_id}`}
+            color="primary"
+            sx={{ textAlign: 'left', justifyContent: 'flex-start' }}
+          >
+            {getPlantName(planting)}
+          </Button>
+        </TableCell>
+        <TableCell>{planting.location || '-'}</TableCell>
+        <TableCell>
+          {planting.seedlings ? (
+            // Actual seedling date is set - show solid chip
+            <Tooltip title="Actual date when seedlings were started">
+              <Chip 
+                icon={<SeedlingIcon sx={{ color: 'white' }} />} 
+                label={format(new Date(planting.seedlings), 'MMM d, yyyy')}
+                size="small"
+                color="primary"
+                sx={{ color: 'white' }}
+              />
+            </Tooltip>
+          ) : planting.plant?.seedlings != null ? (
+            // No actual date, but plant has seedling data - show recommended date with outline
+            <Tooltip title={`Recommended date based on ${Math.abs(planting.plant.seedlings)} days ${planting.plant.seedlings < 0 ? 'before' : 'after'} last frost`}>
+              <Chip 
+                icon={<SeedlingIcon />} 
+                label={format(calculateSeedlingsDate(planting.plant, filterYear), 'MMM d, yyyy')}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
+            </Tooltip>
+          ) : '-'}
+        </TableCell>
+        <TableCell>
+          {planting.planted ? (
+            // Actual transplant date is set - show solid chip
+            <Tooltip title="Actual date when plants were transplanted outside">
+              <Chip 
+                icon={<TransplantIcon sx={{ color: 'white' }} />} 
+                label={format(new Date(planting.planted), 'MMM d, yyyy')}
+                size="small"
+                color="primary"
+                sx={{ color: 'white' }}
+              />
+            </Tooltip>
+          ) : planting.plant?.transplant != null ? (
+            // No actual date, but plant has transplant data - show recommended date with outline
+            <Tooltip title={`Recommended date based on ${Math.abs(planting.plant.transplant)} days ${planting.plant.transplant < 0 ? 'before' : 'after'} last frost`}>
+              <Chip 
+                icon={<TransplantIcon />} 
+                label={format(calculateTransplantDate(planting.plant, filterYear), 'MMM d, yyyy')}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
+            </Tooltip>
+          ) : '-'}
+        </TableCell>
+        <TableCell align="right">
+          <IconButton 
+            color="primary" 
+            onClick={() => handleOpenDialog('edit', planting)}
+            aria-label="edit"
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton 
+            color="error" 
+            onClick={() => handleDelete(planting.id)}
+            aria-label="delete"
+          >
+            <DeleteIcon />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              <PlantingDates plant={planting.plant} year={filterYear} />
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  );
+}
 
 function Plantings() {
   const location = useLocation();
@@ -273,7 +405,20 @@ function Plantings() {
               </Select>
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={true}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Last Frost Date:</strong> April 18, {filterYear}
+              </Typography>
+            </Box>
+          </Grid>
         </Grid>
+      </Paper>
+      
+      <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f8ff' }}>
+        <Typography variant="body2" color="text.secondary">
+          <strong>Tip:</strong> <b>Solid color chips</b> show your actual planting dates. <b>Outlined chips</b> show recommended dates based on ideal timing relative to last frost (April 18). Click the arrow ↓ for more details about each plant's recommended schedule.
+        </Typography>
       </Paper>
 
       {error && (
@@ -286,61 +431,31 @@ function Plantings() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell width="50px" /> {/* Expansion control column */}
               <TableCell>Plant</TableCell>
               <TableCell>Location</TableCell>
-              <TableCell>Seedlings Started</TableCell>
-              <TableCell>Planted Outside</TableCell>
+              <TableCell>Actual Seedling Date</TableCell>
+              <TableCell>Actual Transplant Date</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {plantings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center">
+                <TableCell colSpan={6} align="center">
                   No plantings found for {filterYear}. Add your first planting to get started!
                 </TableCell>
               </TableRow>
             ) : (
               plantings.map((planting) => (
-                <TableRow key={planting.id}>
-                  <TableCell component="th" scope="row">
-                    <Button
-                      component={RouterLink}
-                      to={`/plants/${planting.plant_id}`}
-                      color="primary"
-                      sx={{ textAlign: 'left', justifyContent: 'flex-start' }}
-                    >
-                      {getPlantName(planting)}
-                    </Button>
-                  </TableCell>
-                  <TableCell>{planting.location || '-'}</TableCell>
-                  <TableCell>
-                    {planting.seedlings
-                      ? format(new Date(planting.seedlings), 'MMM d, yyyy')
-                      : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {planting.planted
-                      ? format(new Date(planting.planted), 'MMM d, yyyy')
-                      : '-'}
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton 
-                      color="primary" 
-                      onClick={() => handleOpenDialog('edit', planting)}
-                      aria-label="edit"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
-                      color="error" 
-                      onClick={() => handleDelete(planting.id)}
-                      aria-label="delete"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
+                <Row 
+                  key={planting.id} 
+                  planting={planting} 
+                  getPlantName={getPlantName} 
+                  handleOpenDialog={handleOpenDialog} 
+                  handleDelete={handleDelete}
+                  filterYear={filterYear}
+                />
               ))
             )}
           </TableBody>

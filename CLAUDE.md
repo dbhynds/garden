@@ -33,6 +33,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Pages: Home, Plants, PlantDetails, Plantings
 - Components organized in `/components` directory
 - Tests using Jest and React Testing Library in `__tests__` directory
+- Date calculations for planting schedules based on last frost date (April 18)
+- Expandable rows in Plantings view to show recommended dates
 
 ## Code Style Guidelines
 

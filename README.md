@@ -16,6 +16,8 @@ A full-stack application for managing garden plants and plantings with a FastAPI
 - Interactive forms for adding and editing plants and plantings
 - Year-based filtering for plantings
 - Automated testing with Jest and React Testing Library
+- Planting schedule calculations based on last frost date (April 18)
+- Expandable rows showing recommended dates for starting seeds, transplanting, and harvesting
 
 ## Getting Started
 
