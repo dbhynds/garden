@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from app.routers import plants
+from app.database.models import create_tables
+
+# Initialize and create tables
+create_tables()
 
 app = FastAPI(
     title="Garden API",

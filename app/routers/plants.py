@@ -1,56 +1,41 @@
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
-from typing import List, Optional
-from uuid import uuid4, UUID
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.orm import Session
+from typing import List
+
+from app.database import crud, db
+from app.routers.schemas import Plant, PlantCreate, PlantUpdate
 
 router = APIRouter(
     prefix="/plants",
     tags=["plants"],
 )
 
-class Plant(BaseModel):
-    id: Optional[UUID] = None
-    name: str
-    category: str
-    type: Optional[str] = None
-    seedlines: Optional[int] = None
-    transplant: Optional[int] = None
-    harvest: Optional[int] = None
-
-# In-memory database
-plants_db = []
-
 @router.get("/", response_model=List[Plant])
-async def get_plants():
-    return plants_db
+def get_plants(skip: int = 0, limit: int = 100, db: Session = Depends(db.get_db)):
+    plants = crud.get_plants(db, skip=skip, limit=limit)
+    return plants
 
 @router.get("/{plant_id}", response_model=Plant)
-async def get_plant(plant_id: UUID):
-    for plant in plants_db:
-        if plant.id == plant_id:
-            return plant
-    raise HTTPException(status_code=404, detail="Plant not found")
+def get_plant(plant_id: int, db: Session = Depends(db.get_db)):
+    db_plant = crud.get_plant(db, plant_id=plant_id)
+    if db_plant is None:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    return db_plant
 
 @router.post("/", response_model=Plant, status_code=status.HTTP_201_CREATED)
-async def create_plant(plant: Plant):
-    new_plant = plant.model_copy()
-    new_plant.id = uuid4()
-    plants_db.append(new_plant)
-    return new_plant
+def create_plant(plant: PlantCreate, db: Session = Depends(db.get_db)):
+    return crud.create_plant(db=db, plant=plant)
 
 @router.put("/{plant_id}", response_model=Plant)
-async def update_plant(plant_id: UUID, updated_plant: Plant):
-    for i, plant in enumerate(plants_db):
-        if plant.id == plant_id:
-            updated_with_id = updated_plant.model_copy(update={"id": plant_id})
-            plants_db[i] = updated_with_id
-            return updated_with_id
-    raise HTTPException(status_code=404, detail="Plant not found")
+def update_plant(plant_id: int, plant: PlantUpdate, db: Session = Depends(db.get_db)):
+    db_plant = crud.update_plant(db, plant_id=plant_id, plant=plant)
+    if db_plant is None:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    return db_plant
 
 @router.delete("/{plant_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_plant(plant_id: UUID):
-    for i, plant in enumerate(plants_db):
-        if plant.id == plant_id:
-            plants_db.pop(i)
-            return
-    raise HTTPException(status_code=404, detail="Plant not found")
+def delete_plant(plant_id: int, db: Session = Depends(db.get_db)):
+    success = crud.delete_plant(db, plant_id=plant_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    return None
