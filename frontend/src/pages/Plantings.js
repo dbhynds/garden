@@ -36,6 +36,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SeedlingIcon from '@mui/icons-material/Spa';
 import TransplantIcon from '@mui/icons-material/Grass';
+import HarvestIcon from '@mui/icons-material/Agriculture';
 import { 
   getPlantsAPI, 
   getPlantingsAPI, 
@@ -60,6 +61,26 @@ const calculateTransplantDate = (plant, year) => {
   return addDays(lastFrostDate, plant.transplant);
 };
 
+const calculateHarvestDate = (plant, planting, filterYear) => {
+  // Harvest is calculated based on actual transplant date if available,
+  // otherwise from calculated transplant date
+  if (!plant.harvest) return null;
+  
+  let baseDate;
+  if (planting.planted) {
+    // Use actual transplant date if available
+    baseDate = new Date(planting.planted);
+  } else if (plant.transplant != null) {
+    // Otherwise use the recommended transplant date
+    const lastFrostDate = new Date(filterYear, 3, 18); // Month is 0-indexed (3 = April)
+    baseDate = addDays(lastFrostDate, plant.transplant);
+  } else {
+    return null;
+  }
+  
+  return addDays(baseDate, plant.harvest);
+};
+
 // Expandable row component
 function Row(props) {
   const { planting, getPlantName, handleOpenDialog, handleDelete, filterYear } = props;
@@ -79,6 +100,23 @@ function Row(props) {
             </IconButton>
           </Tooltip>
         </TableCell>
+        <TableCell>
+          {planting.plant?.category ? (
+            <Tooltip title={planting.plant.category}>
+              <Chip
+                label={planting.plant.category.charAt(0).toUpperCase()}
+                size="small"
+                color="success"
+                sx={{ 
+                  width: '28px', 
+                  height: '28px', 
+                  borderRadius: '50%',
+                  fontWeight: 'bold'
+                }}
+              />
+            </Tooltip>
+          ) : '-'}
+        </TableCell>
         <TableCell component="th" scope="row">
           <Button
             component={RouterLink}
@@ -89,7 +127,6 @@ function Row(props) {
             {getPlantName(planting)}
           </Button>
         </TableCell>
-        <TableCell>{planting.location || '-'}</TableCell>
         <TableCell>
           {planting.seedlings ? (
             // Actual seedling date is set - show solid chip
@@ -104,15 +141,21 @@ function Row(props) {
             </Tooltip>
           ) : planting.plant?.seedlings != null ? (
             // No actual date, but plant has seedling data - show recommended date with outline
-            <Tooltip title={`Recommended date based on ${Math.abs(planting.plant.seedlings)} days ${planting.plant.seedlings < 0 ? 'before' : 'after'} last frost`}>
-              <Chip 
-                icon={<SeedlingIcon />} 
-                label={format(calculateSeedlingsDate(planting.plant, filterYear), 'MMM d, yyyy')}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            </Tooltip>
+            (() => {
+              const recommendedDate = calculateSeedlingsDate(planting.plant, filterYear);
+              const isPast = new Date() > recommendedDate;
+              return (
+                <Tooltip title={`Recommended date based on ${Math.abs(planting.plant.seedlings)} days ${planting.plant.seedlings < 0 ? 'before' : 'after'} last frost${isPast ? ' (overdue)' : ''}`}>
+                  <Chip 
+                    icon={<SeedlingIcon />} 
+                    label={format(recommendedDate, 'MMM d, yyyy')}
+                    size="small"
+                    color={isPast ? "warning" : "primary"}
+                    variant="outlined"
+                  />
+                </Tooltip>
+              );
+            })()
           ) : '-'}
         </TableCell>
         <TableCell>
@@ -129,17 +172,50 @@ function Row(props) {
             </Tooltip>
           ) : planting.plant?.transplant != null ? (
             // No actual date, but plant has transplant data - show recommended date with outline
-            <Tooltip title={`Recommended date based on ${Math.abs(planting.plant.transplant)} days ${planting.plant.transplant < 0 ? 'before' : 'after'} last frost`}>
-              <Chip 
-                icon={<TransplantIcon />} 
-                label={format(calculateTransplantDate(planting.plant, filterYear), 'MMM d, yyyy')}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            </Tooltip>
+            (() => {
+              const recommendedDate = calculateTransplantDate(planting.plant, filterYear);
+              const isPast = new Date() > recommendedDate;
+              return (
+                <Tooltip title={`Recommended date based on ${Math.abs(planting.plant.transplant)} days ${planting.plant.transplant < 0 ? 'before' : 'after'} last frost${isPast ? ' (overdue)' : ''}`}>
+                  <Chip 
+                    icon={<TransplantIcon />} 
+                    label={format(recommendedDate, 'MMM d, yyyy')}
+                    size="small"
+                    color={isPast ? "warning" : "primary"}
+                    variant="outlined"
+                  />
+                </Tooltip>
+              );
+            })()
           ) : '-'}
         </TableCell>
+        <TableCell>
+          {(() => {
+            // Always calculate harvest date based on transplant date (actual or calculated)
+            const recommendedDate = planting.plant?.harvest != null ? 
+              calculateHarvestDate(planting.plant, planting, filterYear) : null;
+              
+            if (!recommendedDate) return '-';
+            
+            const isPast = new Date() > recommendedDate;
+            const baseText = planting.planted ? 
+              `Expected date based on actual transplant + ${planting.plant.harvest} days` :
+              `Recommended date based on calculated transplant + ${planting.plant.harvest} days`;
+              
+            return (
+              <Tooltip title={`${baseText}${isPast ? ' (overdue)' : ''}`}>
+                <Chip 
+                  icon={<HarvestIcon />} 
+                  label={format(recommendedDate, 'MMM d, yyyy')}
+                  size="small"
+                  color={isPast ? "warning" : "success"}
+                  variant="outlined"
+                />
+              </Tooltip>
+            );
+          })()}
+        </TableCell>
+        <TableCell>{planting.location || '-'}</TableCell>
         <TableCell align="right">
           <IconButton 
             color="primary" 
@@ -158,7 +234,7 @@ function Row(props) {
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <PlantingDates plant={planting.plant} year={filterYear} />
@@ -417,7 +493,7 @@ function Plantings() {
       
       <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f8ff' }}>
         <Typography variant="body2" color="text.secondary">
-          <strong>Tip:</strong> <b>Solid color chips</b> show your actual planting dates. <b>Outlined chips</b> show recommended dates based on ideal timing relative to last frost (April 18). Click the arrow ↓ for more details about each plant's recommended schedule.
+          <strong>Tip:</strong> <b>Solid color chips</b> show your actual planting dates. <b>Outlined chips</b> show recommended dates based on ideal timing relative to last frost (April 18). <b>Orange chips</b> indicate recommended dates that have already passed. Click the arrow ↓ for more details about each plant's recommended schedule.
         </Typography>
       </Paper>
 
@@ -432,17 +508,19 @@ function Plantings() {
           <TableHead>
             <TableRow>
               <TableCell width="50px" /> {/* Expansion control column */}
+              <TableCell width="60px">Type</TableCell>
               <TableCell>Plant</TableCell>
+              <TableCell>Seedling Date</TableCell>
+              <TableCell>Transplant Date</TableCell>
+              <TableCell>Estimated Harvest</TableCell>
               <TableCell>Location</TableCell>
-              <TableCell>Actual Seedling Date</TableCell>
-              <TableCell>Actual Transplant Date</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {plantings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={8} align="center">
                   No plantings found for {filterYear}. Add your first planting to get started!
                 </TableCell>
               </TableRow>
