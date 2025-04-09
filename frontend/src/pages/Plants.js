@@ -162,7 +162,7 @@ function Plants() {
       console.error('Error saving plant:', err);
       setSnackbar({
         open: true,
-        message: \`Failed to \${dialogMode === 'add' ? 'add' : 'update'} plant\`,
+        message: `Failed to ${dialogMode === 'add' ? 'add' : 'update'} plant`,
         severity: 'error'
       });
     }

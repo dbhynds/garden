@@ -26,9 +26,14 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     port: 3000,
-    proxy: {
-      '/api': 'http://localhost:8000'
-    }
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'http://localhost:8000',
+        secure: false,
+        changeOrigin: true
+      }
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({

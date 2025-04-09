@@ -9,7 +9,7 @@ import {
   Grid, 
   Paper 
 } from '@mui/material';
-import EcoIcon from '@mui/icons-material/Eco';
+import NatureIcon from '@mui/icons-material/Nature';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 function Home() {
@@ -29,7 +29,7 @@ function Home() {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <EcoIcon color="primary" fontSize="large" sx={{ mr: 1 }} />
+                <NatureIcon color="primary" fontSize="large" sx={{ mr: 1 }} />
                 <Typography variant="h2">
                   Plants
                 </Typography>
@@ -42,7 +42,7 @@ function Home() {
                 color="primary"
                 component={RouterLink}
                 to="/plants"
-                startIcon={<EcoIcon />}
+                startIcon={<NatureIcon />}
               >
                 View Plants
               </Button>

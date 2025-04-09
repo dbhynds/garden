@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
-import EcoIcon from '@mui/icons-material/Eco';
+import NatureIcon from '@mui/icons-material/Nature';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 function Layout({ children }) {
@@ -32,7 +32,7 @@ function Layout({ children }) {
 
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
-    { text: 'Plants', icon: <EcoIcon />, path: '/plants' },
+    { text: 'Plants', icon: <NatureIcon />, path: '/plants' },
     { text: 'Plantings', icon: <CalendarMonthIcon />, path: '/plantings' }
   ];
 

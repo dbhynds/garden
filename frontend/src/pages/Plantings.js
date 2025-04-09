@@ -180,7 +180,7 @@ function Plantings() {
       console.error('Error saving planting:', err);
       setSnackbar({
         open: true,
-        message: \`Failed to \${dialogMode === 'add' ? 'add' : 'update'} planting\`,
+        message: `Failed to ${dialogMode === 'add' ? 'add' : 'update'} planting`,
         severity: 'error'
       });
     }
