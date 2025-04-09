@@ -1,0 +1,44 @@
+Plant,Type,Seedlings,Transplant,Harvest
+Broccoli,V,-42,-14,75
+Shishito,P,-42,28,90
+Poblano,P,-42,28,90
+Cayenne,P,-42,28,90
+Calabrian,P,-42,28,90
+Jimmy Nardelo,P,-42,28,90
+Jalapeno,P,-42,28,90
+Butterfly pea,V,-42,28,60
+Russian red kale,G,-35,-7,50
+Lacinato kale,G,-35,-7,65
+Pink radicchio,G,-28,0,55
+Eggplant,V,-28,28,75
+Speckled Roman,T,-28,28,80
+Standard red slicer,T,-28,28,80
+Striped German,T,-28,28,80
+Tasmanian Chocolate,T,-28,28,80
+Zucchini,V,-14,14,57
+Sungold,T,-14,28,60
+Ground cherry,V,-14,28,65
+Pink brandywine,T,-14,28,80
+Sugar snap peas,V,,-35,55
+Spinach,G,,-28,45
+Sorrel,G,,-28,55
+Deep purple bunching onions,V,,-28,60
+Japanese giant red mustard,G,,-14,45
+Mixed Lettuces,G,,-14,45
+Dill,H,,-14,45
+Swiss chard,G,,-14,55
+Cilantro,H,,-7,45
+Nettles,G,,-7,90
+Mint,H,,0,75
+Sage,H,,0,85
+Thyme,H,,0,90
+Beets,V,,14,55
+Chives,H,,14,80
+Basil,H,,28,
+Shiso,G,,28,65
+Parsley,H,,28,70
+Oregano,H,,28,85
+Brussel sprouts,V,,28,90
+Rosemary,H,,28,100
+Delicata,V,,28,100
+Baby corn,V,,28,105
