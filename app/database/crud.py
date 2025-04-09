@@ -2,11 +2,43 @@ from sqlalchemy.orm import Session, joinedload
 from . import models
 from app.routers.schemas import PlantCreate, PlantUpdate, PlantingCreate, PlantingUpdate
 
+# Common constants and utility functions
+from sqlalchemy import case, cast, String
+from sqlalchemy.sql.expression import literal_column
+
+# Define the custom category sort order
+CATEGORY_ORDER = {
+    'tomato': 1,
+    'pepper': 2,
+    'green': 3,
+    'vegetable': 4,
+    'herb': 5,
+    'flower': 6
+}
+
+# Create a case expression for sorting by category
+def get_category_sort_expression():
+    from sqlalchemy.sql import expression
+    
+    # Create case expression for category sort order
+    when_expressions = []
+    for category, order in CATEGORY_ORDER.items():
+        when_expressions.append(
+            (models.Plant.category == category, literal_column(str(order)))
+        )
+    
+    return expression.case(*when_expressions, else_=literal_column('100'))
+
 # Plant CRUD operations
 
 # Get all plants
 def get_plants(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Plant).offset(skip).limit(limit).all()
+    # Query plants sorted by category order, then by name
+    return db.query(models.Plant)\
+        .order_by(get_category_sort_expression(), models.Plant.name)\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
 
 # Get a specific plant by ID
 def get_plant(db: Session, plant_id: int):
@@ -76,15 +108,36 @@ def get_planting_by_year_and_plant_id(db: Session, year: int, plant_id: int):
 
 # Get all plantings
 def get_plantings(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Planting).options(joinedload(models.Planting.plant)).offset(skip).limit(limit).all()
+    # Query plantings joined with plants, sorted by plant category order, then by plant name
+    return db.query(models.Planting)\
+        .join(models.Plant)\
+        .options(joinedload(models.Planting.plant))\
+        .order_by(get_category_sort_expression(), models.Plant.name)\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
 
 # Get plantings by year
 def get_plantings_by_year(db: Session, year: int, skip: int = 0, limit: int = 100):
-    return db.query(models.Planting).options(joinedload(models.Planting.plant)).filter(models.Planting.year == year).offset(skip).limit(limit).all()
+    # Query plantings filtered by year, joined with plants, sorted by plant category and name
+    return db.query(models.Planting)\
+        .join(models.Plant)\
+        .options(joinedload(models.Planting.plant))\
+        .filter(models.Planting.year == year)\
+        .order_by(get_category_sort_expression(), models.Plant.name)\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
 
 # Get plantings for a specific plant
 def get_plantings_by_plant(db: Session, plant_id: int, skip: int = 0, limit: int = 100):
-    return db.query(models.Planting).options(joinedload(models.Planting.plant)).filter(models.Planting.plant_id == plant_id).offset(skip).limit(limit).all()
+    # When filtering by plant_id, we don't need to sort by plant category/name
+    return db.query(models.Planting)\
+        .options(joinedload(models.Planting.plant))\
+        .filter(models.Planting.plant_id == plant_id)\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
 
 # Get a specific planting by ID
 def get_planting(db: Session, planting_id: int):
