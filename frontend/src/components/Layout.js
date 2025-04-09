@@ -33,7 +33,7 @@ function Layout({ children }) {
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Plants', icon: <NatureIcon />, path: '/plants' },
-    { text: 'Plantings', icon: <CalendarMonthIcon />, path: '/plantings' }
+    { text: 'Your Garden', icon: <CalendarMonthIcon />, path: '/plantings' }
   ];
 
   const drawer = (
@@ -44,7 +44,7 @@ function Layout({ children }) {
       onKeyDown={toggleDrawer(false)}
     >
       <Box sx={{ p: 2 }}>
-        <Typography variant="h6" component="div">
+        <Typography variant="h6" component="div" sx={{ color: 'primary.main' }}>
           Garden Planner
         </Typography>
       </Box>
@@ -79,19 +79,19 @@ function Layout({ children }) {
             sx={{ mr: 2 }}
             onClick={toggleDrawer(true)}
           >
-            <MenuIcon />
+            <MenuIcon sx={{ color: 'white' }} />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'white' }}>
             Garden Planner
           </Typography>
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
             {menuItems.map((item) => (
               <Button 
                 key={item.text}
-                color="inherit" 
+                color="inherit"
                 component={RouterLink} 
                 to={item.path}
-                sx={{ mx: 1 }}
+                sx={{ mx: 1, color: 'white' }}
               >
                 {item.text}
               </Button>

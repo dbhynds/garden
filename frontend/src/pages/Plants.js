@@ -255,7 +255,7 @@ function Plants() {
       navigate('/plantings', { 
         state: { 
           year: currentYear, 
-          message: `${selectedPlants.length} plantings created for ${currentYear}` 
+          message: `${selectedPlants.length} plants added to your garden for ${currentYear}` 
         } 
       });
       
@@ -288,14 +288,15 @@ function Plants() {
         <Typography variant="h1">Plants</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           {selectedPlants.length > 0 && (
-            <Tooltip title={`Create ${selectedPlants.length} plantings for ${currentYear}`}>
+            <Tooltip title={`Add ${selectedPlants.length} selected plants to your garden for ${currentYear}`}>
               <Button
                 variant="contained"
                 color="success"
                 startIcon={<CalendarMonthIcon />}
                 onClick={handleCreatePlantings}
+                sx={{ color: 'white' }}
               >
-                Create {selectedPlants.length} Plantings
+                Add {selectedPlants.length} plants to your garden
               </Button>
             </Tooltip>
           )}
@@ -304,6 +305,7 @@ function Plants() {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog('add')}
+            sx={{ color: 'white' }}
           >
             Add Plant
           </Button>
@@ -469,7 +471,7 @@ function Plants() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
+          <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ color: 'white' }}>
             {dialogMode === 'add' ? 'Add Plant' : 'Save Changes'}
           </Button>
         </DialogActions>

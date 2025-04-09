@@ -111,7 +111,8 @@ function Row(props) {
                   width: '28px', 
                   height: '28px', 
                   borderRadius: '50%',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  color: 'white'
                 }}
               />
             </Tooltip>
@@ -468,14 +469,15 @@ function Plantings() {
   return (
     <Box sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h1">Plantings</Typography>
+        <Typography variant="h1">Your Garden</Typography>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog('add')}
+          sx={{ color: 'white' }}
         >
-          Add Planting
+          Add to Garden
         </Button>
       </Box>
 
@@ -562,7 +564,7 @@ function Plantings() {
       {/* Add/Edit Planting Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {dialogMode === 'add' ? 'Add New Planting' : 'Edit Planting'}
+          {dialogMode === 'add' ? 'Add to Your Garden' : 'Edit Garden Entry'}
         </DialogTitle>
         <DialogContent>
           <Box component="form" sx={{ mt: 1 }}>
@@ -631,8 +633,8 @@ function Plantings() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            {dialogMode === 'add' ? 'Add Planting' : 'Save Changes'}
+          <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ color: 'white' }}>
+            {dialogMode === 'add' ? 'Add to Garden' : 'Save Changes'}
           </Button>
         </DialogActions>
       </Dialog>

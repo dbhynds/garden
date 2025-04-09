@@ -10,6 +10,7 @@ import {
   Paper 
 } from '@mui/material';
 import NatureIcon from '@mui/icons-material/Nature';
+import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 function Home() {
@@ -29,7 +30,7 @@ function Home() {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <NatureIcon color="primary" fontSize="large" sx={{ mr: 1 }} />
+                <LocalFloristIcon color="primary" fontSize="large" sx={{ mr: 1 }} />
                 <Typography variant="h2">
                   Plants
                 </Typography>
@@ -42,7 +43,8 @@ function Home() {
                 color="primary"
                 component={RouterLink}
                 to="/plants"
-                startIcon={<NatureIcon />}
+                startIcon={<LocalFloristIcon />}
+                sx={{ color: 'white' }}
               >
                 View Plants
               </Button>
@@ -54,9 +56,9 @@ function Home() {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CalendarMonthIcon color="secondary" fontSize="large" sx={{ mr: 1 }} />
+                <CalendarMonthIcon color="success" fontSize="large" sx={{ mr: 1 }} />
                 <Typography variant="h2">
-                  Plantings
+                  Your Garden
                 </Typography>
               </Box>
               <Typography variant="body1" paragraph>
@@ -64,12 +66,13 @@ function Home() {
               </Typography>
               <Button 
                 variant="contained" 
-                color="secondary"
+                color="success"
                 component={RouterLink}
                 to="/plantings"
                 startIcon={<CalendarMonthIcon />}
+                sx={{ color: 'white' }}
               >
-                View Plantings
+                View Your Garden
               </Button>
             </CardContent>
           </Card>
