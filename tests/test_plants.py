@@ -37,6 +37,16 @@ def test_create_plant(client):
     assert "id" in data
     return data["id"]
 
+def test_create_duplicate_plant(client):
+    """Test creating a plant with duplicate name and category."""
+    # First create a plant
+    plant_id = test_create_plant(client)
+    
+    # Try to create the same plant again
+    response = client.post(API_PREFIX + "/", json=test_plant)
+    assert response.status_code == 409
+    assert "already exists" in response.json()["detail"]
+
 def test_get_plants(client):
     """Test retrieving all plants."""
     # First create a plant
@@ -89,6 +99,26 @@ def test_update_nonexistent_plant(client):
     response = client.put(f"{API_PREFIX}/9999", json=updated_plant)
     assert response.status_code == 404
     assert "detail" in response.json()
+    
+def test_update_to_duplicate_plant(client):
+    """Test updating a plant to have the same name and category as another plant."""
+    # Create first plant (the one we'll update later)
+    plant1_id = test_create_plant(client)
+    
+    # Create a second plant with different name/category
+    second_plant = {
+        "name": "Cucumber",
+        "category": "vegetable",
+        "type": "Slicing"
+    }
+    response = client.post(API_PREFIX + "/", json=second_plant)
+    assert response.status_code == 201
+    plant2_id = response.json()["id"]
+    
+    # Try to update the second plant to have the same name/category as the first
+    response = client.put(f"{API_PREFIX}/{plant2_id}", json={"name": test_plant["name"], "category": test_plant["category"]})
+    assert response.status_code == 409
+    assert "another plant with the same name and category already exists" in response.json()["detail"]
 
 def test_partial_update_plant(client):
     """Test partially updating a plant."""

@@ -42,9 +42,19 @@ def create_planting(planting: PlantingCreate, db: Session = Depends(db.get_db)):
     """
     Create a new planting record.
     """
+    # First check if the plant exists
+    db_plant = crud.get_plant(db, plant_id=planting.plant_id)
+    if db_plant is None:
+        raise HTTPException(status_code=404, detail="Plant not found")
+    
+    # Try to create the planting
     db_planting = crud.create_planting(db=db, planting=planting)
     if db_planting is None:
-        raise HTTPException(status_code=404, detail="Plant not found")
+        # If None is returned after confirming the plant exists, it's due to a duplicate
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A planting for plant '{db_plant.name}' in year {planting.year} already exists"
+        )
     return db_planting
 
 @router.put("/{planting_id}", response_model=PlantingWithPlant)
@@ -52,9 +62,25 @@ def update_planting(planting_id: int, planting: PlantingUpdate, db: Session = De
     """
     Update a planting record.
     """
+    # First check if the planting exists
+    existing_planting = crud.get_planting(db, planting_id=planting_id)
+    if existing_planting is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Planting not found")
+    
+    # If plant_id is being updated, verify the new plant exists
+    if planting.plant_id is not None and planting.plant_id != existing_planting.plant_id:
+        db_plant = crud.get_plant(db, plant_id=planting.plant_id)
+        if db_plant is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced plant does not exist")
+    
+    # Try to update the planting
     db_planting = crud.update_planting(db, planting_id=planting_id, planting=planting)
     if db_planting is None:
-        raise HTTPException(status_code=404, detail="Planting not found or referenced plant does not exist")
+        # If None is returned after confirming the planting exists, it's due to a conflict
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot update: a planting for this plant and year combination already exists"
+        )
     return db_planting
 
 @router.delete("/{planting_id}", status_code=status.HTTP_204_NO_CONTENT)

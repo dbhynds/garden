@@ -45,6 +45,16 @@ def test_create_planting(client):
     assert "id" in data
     return data["id"]
 
+def test_create_duplicate_planting(client):
+    """Test creating a planting with duplicate year and plant_id."""
+    # First create a plant and a planting
+    test_create_planting(client)
+    
+    # Try to create the same planting again
+    response = client.post(API_PREFIX + "/", json=test_planting)
+    assert response.status_code == 409
+    assert "already exists" in response.json()["detail"]
+
 def test_get_plantings(client):
     """Test retrieving all plantings."""
     # First create a planting
@@ -148,6 +158,52 @@ def test_update_nonexistent_planting(client):
     response = client.put(f"{API_PREFIX}/9999", json=updated_planting)
     assert response.status_code == 404
     assert "detail" in response.json()
+
+def test_update_to_duplicate_planting(client):
+    """Test updating a planting to have the same year and plant_id as another planting."""
+    # Create a plant with a different name to avoid conflicts
+    plant_response = client.post("/api/plants/", json={
+        "name": "Tomato Test",
+        "category": "tomato",
+        "type": "Test",
+        "seedlings": 10,
+        "transplant": 30,
+        "harvest": 90
+    })
+    assert plant_response.status_code == 201
+    plant_id = plant_response.json()["id"]
+    test_planting["plant_id"] = plant_id
+    
+    # Create another plant
+    another_plant_response = client.post("/api/plants/", json={
+        "name": "Cucumber",
+        "category": "vegetable",
+        "type": "Slicing"
+    })
+    assert another_plant_response.status_code == 201
+    another_plant_id = another_plant_response.json()["id"]
+    
+    # Create first planting for the first plant
+    response = client.post(API_PREFIX + "/", json=test_planting)
+    assert response.status_code == 201
+    planting1_id = response.json()["id"]
+    
+    # Create second planting for the second plant with a different year
+    second_planting = {
+        "year": 2026,  # Different year to avoid conflict
+        "plant_id": another_plant_id,
+        "seedlings": "2026-03-01T00:00:00",
+        "planted": "2026-04-15T00:00:00",
+        "location": "Garden Bed 3"
+    }
+    response = client.post(API_PREFIX + "/", json=second_planting)
+    assert response.status_code == 201
+    planting2_id = response.json()["id"]
+    
+    # Try to update the second planting to have the same year and plant_id as the first
+    response = client.put(f"{API_PREFIX}/{planting2_id}", json={"year": 2025, "plant_id": plant_id})
+    assert response.status_code == 409
+    assert "already exists" in response.json()["detail"]
 
 def test_delete_planting(client):
     """Test deleting a planting."""
