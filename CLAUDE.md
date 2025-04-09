@@ -15,6 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Install dependencies: `cd frontend && npm install`
 - Start development server: `cd frontend && npm start`
 - Build for production: `cd frontend && npm run build`
+- Run tests: `cd frontend && npm test`
+- Run tests in watch mode: `cd frontend && npm run test:watch`
 
 ## Project Structure
 
@@ -30,6 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Axios for API requests
 - Pages: Home, Plants, PlantDetails, Plantings
 - Components organized in `/components` directory
+- Tests using Jest and React Testing Library in `__tests__` directory
 
 ## Code Style Guidelines
 

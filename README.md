@@ -15,6 +15,7 @@ A full-stack application for managing garden plants and plantings with a FastAPI
 - Responsive design for desktop and mobile
 - Interactive forms for adding and editing plants and plantings
 - Year-based filtering for plantings
+- Automated testing with Jest and React Testing Library
 
 ## Getting Started
 
@@ -57,6 +58,18 @@ npm start
 ```
 
 The frontend will open automatically in your browser at http://localhost:3000
+
+#### Running frontend tests:
+```
+cd frontend
+npm test
+```
+
+To run tests in watch mode (tests rerun when files change):
+```
+cd frontend
+npm run test:watch
+```
 
 ### Database
 
