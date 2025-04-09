@@ -283,6 +283,23 @@ function Plantings() {
       });
       handleOpenDialog('add');
     }
+    
+    // Handle message from the Plants page after creating multiple plantings
+    if (location.state?.message) {
+      setSnackbar({
+        open: true,
+        message: location.state.message,
+        severity: 'success'
+      });
+      
+      // Set filter year if provided
+      if (location.state?.year) {
+        setFilterYear(location.state.year);
+      }
+      
+      // Clear the location state
+      window.history.replaceState({}, document.title);
+    }
   }, [location]);
 
   const fetchData = async () => {
@@ -441,9 +458,11 @@ function Plantings() {
     );
   }
 
+  const currentYear = new Date().getFullYear();
+  const nextYear = currentYear + 1;
   const years = Array.from(
-    { length: 10 },
-    (_, i) => new Date().getFullYear() - 5 + i
+    { length: nextYear - 2016 + 1 },
+    (_, i) => 2016 + i
   );
 
   return (
@@ -557,7 +576,7 @@ function Plantings() {
               type="number"
               value={formData.year}
               onChange={handleInputChange}
-              InputProps={{ inputProps: { min: 2000, max: 2100 } }}
+              InputProps={{ inputProps: { min: 2016, max: nextYear } }}
             />
             <FormControl fullWidth margin="normal" required>
               <InputLabel id="plant-label">Plant</InputLabel>

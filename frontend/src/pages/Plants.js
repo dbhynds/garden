@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Typography,
   Box,
@@ -23,20 +23,25 @@ import {
   MenuItem,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Checkbox,
+  Tooltip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { getPlantsAPI, createPlantAPI, updatePlantAPI, deletePlantAPI } from '../services/api';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { getPlantsAPI, createPlantAPI, updatePlantAPI, deletePlantAPI, createPlantingAPI } from '../services/api';
 
 function Plants() {
+  const navigate = useNavigate();
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState('add'); // 'add' or 'edit'
   const [currentPlant, setCurrentPlant] = useState(null);
+  const [selectedPlants, setSelectedPlants] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -50,6 +55,7 @@ function Plants() {
     message: '',
     severity: 'success'
   });
+  const currentYear = new Date().getFullYear();
 
   const categories = ['green', 'tomato', 'pepper', 'vegetable', 'herb', 'flower'];
 
@@ -197,6 +203,76 @@ function Plants() {
       open: false
     });
   };
+  
+  const handleSelectPlant = (id) => {
+    setSelectedPlants(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(plantId => plantId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+  
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      const allPlantIds = plants.map(plant => plant.id);
+      setSelectedPlants(allPlantIds);
+    } else {
+      setSelectedPlants([]);
+    }
+  };
+  
+  const handleCreatePlantings = async () => {
+    if (selectedPlants.length === 0) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Create plantings for each selected plant
+      const plantingPromises = selectedPlants.map(plantId => {
+        const plantingData = {
+          year: currentYear,
+          plant_id: plantId,
+          seedlings: null,
+          planted: null,
+          location: null
+        };
+        return createPlantingAPI(plantingData);
+      });
+      
+      await Promise.all(plantingPromises);
+      
+      setSnackbar({
+        open: true,
+        message: `Successfully created ${selectedPlants.length} plantings for ${currentYear}`,
+        severity: 'success'
+      });
+      
+      // Redirect to Plantings page
+      navigate('/plantings', { 
+        state: { 
+          year: currentYear, 
+          message: `${selectedPlants.length} plantings created for ${currentYear}` 
+        } 
+      });
+      
+      // Clear selection
+      setSelectedPlants([]);
+      
+    } catch (err) {
+      console.error('Error creating plantings:', err);
+      setSnackbar({
+        open: true,
+        message: 'Failed to create plantings. Please try again.',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -210,14 +286,28 @@ function Plants() {
     <Box sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h1">Plants</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog('add')}
-        >
-          Add Plant
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {selectedPlants.length > 0 && (
+            <Tooltip title={`Create ${selectedPlants.length} plantings for ${currentYear}`}>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CalendarMonthIcon />}
+                onClick={handleCreatePlantings}
+              >
+                Create {selectedPlants.length} Plantings
+              </Button>
+            </Tooltip>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog('add')}
+          >
+            Add Plant
+          </Button>
+        </Box>
       </Box>
 
       {error && (
@@ -230,9 +320,17 @@ function Plants() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={selectedPlants.length > 0 && selectedPlants.length < plants.length}
+                  checked={plants.length > 0 && selectedPlants.length === plants.length}
+                  onChange={handleSelectAll}
+                  inputProps={{ 'aria-label': 'select all plants' }}
+                />
+              </TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Category</TableCell>
-              <TableCell>Type</TableCell>
+              {/* <TableCell>Type</TableCell> */}
               <TableCell>Seedlings</TableCell>
               <TableCell>Transplant</TableCell>
               <TableCell>Harvest</TableCell>
@@ -248,12 +346,23 @@ function Plants() {
               </TableRow>
             ) : (
               plants.map((plant) => (
-                <TableRow key={plant.id}>
-                  <TableCell component="th" scope="row">
+                <TableRow 
+                  key={plant.id}
+                  selected={selectedPlants.includes(plant.id)}
+                  hover
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedPlants.includes(plant.id)}
+                      onChange={() => handleSelectPlant(plant.id)}
+                      inputProps={{ 'aria-labelledby': `plant-${plant.id}` }}
+                    />
+                  </TableCell>
+                  <TableCell component="th" scope="row" id={`plant-${plant.id}`}>
                     {plant.name}
                   </TableCell>
                   <TableCell>{plant.category}</TableCell>
-                  <TableCell>{plant.type || '-'}</TableCell>
+                  {/* <TableCell>{plant.type || '-'}</TableCell> */}
                   <TableCell>{plant.seedlings !== null ? plant.seedlings : '-'}</TableCell>
                   <TableCell>{plant.transplant !== null ? plant.transplant : '-'}</TableCell>
                   <TableCell>{plant.harvest !== null ? plant.harvest : '-'}</TableCell>
