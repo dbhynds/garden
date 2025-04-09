@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
+from datetime import datetime
 
 # Base Plant model
 class PlantBase(BaseModel):
@@ -26,3 +27,35 @@ class Plant(PlantBase):
     class Config:
         orm_mode = True
         from_attributes = True
+        
+# Base Planting model
+class PlantingBase(BaseModel):
+    year: int
+    plant_id: int
+    seedlings: Optional[datetime] = None
+    planted: Optional[datetime] = None
+    location: Optional[str] = None
+
+# Create Planting request
+class PlantingCreate(PlantingBase):
+    pass
+
+# Update Planting request
+class PlantingUpdate(PlantingBase):
+    year: Optional[int] = None
+    plant_id: Optional[int] = None
+    seedlings: Optional[datetime] = None
+    planted: Optional[datetime] = None
+    location: Optional[str] = None
+
+# Planting response
+class Planting(PlantingBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+        
+# Planting response with Plant details
+class PlantingWithPlant(Planting):
+    plant: Plant

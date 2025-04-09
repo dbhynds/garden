@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Boolean, create_engine
+from sqlalchemy import Column, Integer, String, Boolean, create_engine, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +31,23 @@ class Plant(Base):
     seedlings = Column(Integer, nullable=True)
     transplant = Column(Integer, nullable=True)
     harvest = Column(Integer, nullable=True)
+    
+    # Relationship to Planting
+    plantings = relationship("Planting", back_populates="plant")
+
+# Define Planting model
+class Planting(Base):
+    __tablename__ = "plantings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    year = Column(Integer, nullable=False)
+    plant_id = Column(Integer, ForeignKey("plants.id"), nullable=False)
+    seedlings = Column(DateTime, nullable=True)
+    planted = Column(DateTime, nullable=True)
+    location = Column(String, nullable=True)
+    
+    # Relationship to Plant
+    plant = relationship("Plant", back_populates="plantings")
 
 # Create tables
 def create_tables():
