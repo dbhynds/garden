@@ -4,7 +4,7 @@ import pytest
 # Test data
 test_plant = {
     "name": "Tomato",
-    "category": "Vegetable",
+    "category": "tomato",
     "type": "Cherry",
     "seedlings": 10,
     "transplant": 30,
@@ -13,7 +13,7 @@ test_plant = {
 
 updated_plant = {
     "name": "Roma Tomato",
-    "category": "Vegetable",
+    "category": "tomato",
     "type": "Roma",
     "seedlings": 15,
     "transplant": 35,
@@ -96,7 +96,7 @@ def test_partial_update_plant(client):
     plant_id = test_create_plant(client)
     
     # Then partially update the plant
-    partial_update = {"name": "Better Tomato"}
+    partial_update = {"name": "Better Tomato", "category": "tomato"}
     response = client.put(f"{API_PREFIX}/{plant_id}", json=partial_update)
     assert response.status_code == 200
     data = response.json()

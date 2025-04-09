@@ -1,10 +1,10 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, Literal
 
 # Base Plant model
 class PlantBase(BaseModel):
     name: str
-    category: str
+    category: Literal["green", "tomato", "pepper", "vegetable", "herb", "flower"]
     type: Optional[str] = None
     seedlings: Optional[int] = None
     transplant: Optional[int] = None
@@ -17,7 +17,7 @@ class PlantCreate(PlantBase):
 # Update Plant request
 class PlantUpdate(PlantBase):
     name: Optional[str] = None
-    category: Optional[str] = None
+    category: Optional[Literal["green", "tomato", "pepper", "vegetable", "herb", "flower"]] = None
 
 # Plant response
 class Plant(PlantBase):
