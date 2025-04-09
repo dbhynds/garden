@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from . import models
 from app.routers.schemas import PlantCreate, PlantUpdate, PlantingCreate, PlantingUpdate
 
@@ -44,19 +44,19 @@ def delete_plant(db: Session, plant_id: int):
 
 # Get all plantings
 def get_plantings(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Planting).offset(skip).limit(limit).all()
+    return db.query(models.Planting).options(joinedload(models.Planting.plant)).offset(skip).limit(limit).all()
 
 # Get plantings by year
 def get_plantings_by_year(db: Session, year: int, skip: int = 0, limit: int = 100):
-    return db.query(models.Planting).filter(models.Planting.year == year).offset(skip).limit(limit).all()
+    return db.query(models.Planting).options(joinedload(models.Planting.plant)).filter(models.Planting.year == year).offset(skip).limit(limit).all()
 
 # Get plantings for a specific plant
 def get_plantings_by_plant(db: Session, plant_id: int, skip: int = 0, limit: int = 100):
-    return db.query(models.Planting).filter(models.Planting.plant_id == plant_id).offset(skip).limit(limit).all()
+    return db.query(models.Planting).options(joinedload(models.Planting.plant)).filter(models.Planting.plant_id == plant_id).offset(skip).limit(limit).all()
 
 # Get a specific planting by ID
 def get_planting(db: Session, planting_id: int):
-    return db.query(models.Planting).filter(models.Planting.id == planting_id).first()
+    return db.query(models.Planting).options(joinedload(models.Planting.plant)).filter(models.Planting.id == planting_id).first()
 
 # Create a new planting
 def create_planting(db: Session, planting: PlantingCreate):
@@ -69,7 +69,9 @@ def create_planting(db: Session, planting: PlantingCreate):
     db.add(db_planting)
     db.commit()
     db.refresh(db_planting)
-    return db_planting
+    
+    # Reload the planting with the plant relationship
+    return get_planting(db, db_planting.id)
 
 # Update a planting
 def update_planting(db: Session, planting_id: int, planting: PlantingUpdate):
@@ -88,7 +90,9 @@ def update_planting(db: Session, planting_id: int, planting: PlantingUpdate):
         setattr(db_planting, key, value)
     db.commit()
     db.refresh(db_planting)
-    return db_planting
+    
+    # Reload the planting with the plant relationship
+    return get_planting(db, planting_id)
 
 # Delete a planting
 def delete_planting(db: Session, planting_id: int):

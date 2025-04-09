@@ -10,7 +10,7 @@ router = APIRouter(
     tags=["plantings"],
 )
 
-@router.get("/", response_model=List[Planting])
+@router.get("/", response_model=List[PlantingWithPlant])
 def get_plantings(
     skip: int = 0, 
     limit: int = 100, 
@@ -37,7 +37,7 @@ def get_planting(planting_id: int, db: Session = Depends(db.get_db)):
         raise HTTPException(status_code=404, detail="Planting not found")
     return db_planting
 
-@router.post("/", response_model=Planting, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=PlantingWithPlant, status_code=status.HTTP_201_CREATED)
 def create_planting(planting: PlantingCreate, db: Session = Depends(db.get_db)):
     """
     Create a new planting record.
@@ -47,7 +47,7 @@ def create_planting(planting: PlantingCreate, db: Session = Depends(db.get_db)):
         raise HTTPException(status_code=404, detail="Plant not found")
     return db_planting
 
-@router.put("/{planting_id}", response_model=Planting)
+@router.put("/{planting_id}", response_model=PlantingWithPlant)
 def update_planting(planting_id: int, planting: PlantingUpdate, db: Session = Depends(db.get_db)):
     """
     Update a planting record.

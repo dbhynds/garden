@@ -56,6 +56,11 @@ def test_get_plantings(client):
     data = response.json()
     assert isinstance(data, list)
     assert len(data) > 0
+    
+    # Check that plant details are included in each planting
+    for planting in data:
+        assert "plant" in planting
+        assert planting["plant"]["id"] == planting["plant_id"]
 
 def test_get_plantings_by_year(client):
     """Test retrieving plantings filtered by year."""
@@ -69,6 +74,11 @@ def test_get_plantings_by_year(client):
     assert isinstance(data, list)
     assert len(data) > 0
     assert all(p["year"] == test_planting["year"] for p in data)
+    
+    # Check that plant details are included in each planting
+    for planting in data:
+        assert "plant" in planting
+        assert planting["plant"]["id"] == planting["plant_id"]
 
 def test_get_plantings_by_plant(client):
     """Test retrieving plantings filtered by plant_id."""
@@ -82,6 +92,12 @@ def test_get_plantings_by_plant(client):
     assert isinstance(data, list)
     assert len(data) > 0
     assert all(p["plant_id"] == test_planting["plant_id"] for p in data)
+    
+    # Check that plant details are included in each planting
+    for planting in data:
+        assert "plant" in planting
+        assert planting["plant"]["id"] == planting["plant_id"]
+        assert planting["plant"]["name"] == test_plant["name"]
 
 def test_get_planting(client):
     """Test retrieving a specific planting."""

@@ -57,5 +57,15 @@ class Planting(PlantingBase):
         from_attributes = True
         
 # Planting response with Plant details
-class PlantingWithPlant(Planting):
+class PlantingWithPlant(BaseModel):
+    id: int
+    year: int
+    plant_id: int
+    seedlings: Optional[datetime] = None
+    planted: Optional[datetime] = None
+    location: Optional[str] = None
     plant: Plant
+    
+    class Config:
+        orm_mode = True
+        from_attributes = True

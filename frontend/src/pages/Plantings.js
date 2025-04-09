@@ -80,12 +80,16 @@ function Plantings() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch plants for the dropdown
-      const plantsData = await getPlantsAPI();
-      setPlants(plantsData);
       
-      // Fetch plantings filtered by year
-      const plantingsData = await getPlantingsAPI({ year: filterYear });
+      // Fetch both data in parallel
+      const [plantsData, plantingsData] = await Promise.all([
+        // Fetch plants for the dropdown
+        getPlantsAPI(),
+        // Fetch plantings filtered by year
+        getPlantingsAPI({ year: filterYear })
+      ]);
+      
+      setPlants(plantsData);
       setPlantings(plantingsData);
       
       setError(null);
@@ -216,9 +220,9 @@ function Plantings() {
     });
   };
 
-  const getPlantName = (plantId) => {
-    const plant = plants.find(p => p.id === plantId);
-    return plant ? plant.name : 'Unknown Plant';
+  // Get plant name from the planting object's plant property
+  const getPlantName = (planting) => {
+    return planting.plant ? planting.plant.name : 'Unknown Plant';
   };
 
   if (loading) {
@@ -306,7 +310,7 @@ function Plantings() {
                       color="primary"
                       sx={{ textAlign: 'left', justifyContent: 'flex-start' }}
                     >
-                      {getPlantName(planting.plant_id)}
+                      {getPlantName(planting)}
                     </Button>
                   </TableCell>
                   <TableCell>{planting.location || '-'}</TableCell>
