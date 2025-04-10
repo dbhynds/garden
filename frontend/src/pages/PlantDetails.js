@@ -153,10 +153,10 @@ function PlantDetails() {
               {plant.seedlings !== null && (
                 <Box sx={{ display: 'flex', mb: 1 }}>
                   <Typography variant="subtitle1" sx={{ width: 120, fontWeight: 'bold' }}>
-                    Seedlings:
+                    Start Seedlings:
                   </Typography>
                   <Typography variant="body1">
-                    {plant.seedlings} days {plant.seedlings < 0 ? 'before' : 'after'} last frost
+                    {Math.abs(plant.seedlings)} days {plant.seedlings < 0 ? 'before' : 'after'} last frost
                   </Typography>
                 </Box>
               )}
@@ -164,10 +164,10 @@ function PlantDetails() {
               {plant.transplant !== null && (
                 <Box sx={{ display: 'flex', mb: 1 }}>
                   <Typography variant="subtitle1" sx={{ width: 120, fontWeight: 'bold' }}>
-                    Transplant:
+                    Plant Outdoors:
                   </Typography>
                   <Typography variant="body1">
-                    {plant.transplant} days {plant.transplant < 0 ? 'before' : 'after'} last frost
+                    {Math.abs(plant.transplant)} days {plant.transplant < 0 ? 'before' : 'after'} last frost
                   </Typography>
                 </Box>
               )}
@@ -214,7 +214,21 @@ function PlantDetails() {
                   {plantings.map((planting) => (
                     <Paper key={planting.id} sx={{ mb: 2, p: 2 }}>
                       <Typography variant="subtitle1" fontWeight="bold">
-                        {planting.year} Season
+                        <Button
+                          component={RouterLink}
+                          to={`/plantings?year=${planting.year}`}
+                          color="success"
+                          sx={{ 
+                            fontWeight: 'bold', 
+                            p: 0, 
+                            minWidth: 0,
+                            textTransform: 'none', 
+                            fontSize: 'inherit',
+                            lineHeight: 'inherit'
+                          }}
+                        >
+                          {planting.year} Season
+                        </Button>
                       </Typography>
                       
                       {planting.location && (
@@ -227,7 +241,7 @@ function PlantDetails() {
                         {planting.seedlings && (
                           <Grid item xs={6}>
                             <Typography variant="caption" display="block" color="textSecondary">
-                              Seedlings Started
+                              Started Seedlings
                             </Typography>
                             <Typography variant="body2">
                               {format(new Date(planting.seedlings), 'MMM d, yyyy')}
@@ -238,7 +252,7 @@ function PlantDetails() {
                         {planting.planted && (
                           <Grid item xs={6}>
                             <Typography variant="caption" display="block" color="textSecondary">
-                              Planted Outside
+                              Planted Outdoors
                             </Typography>
                             <Typography variant="body2">
                               {format(new Date(planting.planted), 'MMM d, yyyy')}

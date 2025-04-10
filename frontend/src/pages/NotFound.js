@@ -24,7 +24,7 @@ function NotFound() {
       </Typography>
       <Button
         variant="contained"
-        color="primary"
+        color="success"
         component={RouterLink}
         to="/"
       >

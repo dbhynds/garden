@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link as RouterLink } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import {
   Typography,
   Box,
@@ -28,6 +28,8 @@ import {
   Collapse,
   Chip,
   Tooltip,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,6 +39,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import SeedlingIcon from '@mui/icons-material/Spa';
 import TransplantIcon from '@mui/icons-material/Grass';
 import HarvestIcon from '@mui/icons-material/Agriculture';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { 
   getPlantsAPI, 
   getPlantingsAPI, 
@@ -81,6 +84,35 @@ const calculateHarvestDate = (plant, planting, filterYear) => {
   return addDays(baseDate, plant.harvest);
 };
 
+// Helper function to check if a planting has any overdue dates
+const isPlantingOverdue = (planting, year) => {
+  const today = new Date();
+  
+  // If the plant has been planted outdoors, it's not overdue
+  // regardless of whether seedling dates were missed
+  if (planting.planted) {
+    return false;
+  }
+  
+  // Check seedlings date
+  if (planting.plant?.seedlings != null && !planting.seedlings) {
+    const recommendedSeedlingsDate = calculateSeedlingsDate(planting.plant, year);
+    if (today > recommendedSeedlingsDate) {
+      return true;
+    }
+  }
+  
+  // Check plant outdoors date
+  if (planting.plant?.transplant != null && !planting.planted) {
+    const recommendedTransplantDate = calculateTransplantDate(planting.plant, year);
+    if (today > recommendedTransplantDate) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
 // Expandable row component
 function Row(props) {
   const { planting, getPlantName, handleOpenDialog, handleDelete, filterYear } = props;
@@ -122,7 +154,7 @@ function Row(props) {
           <Button
             component={RouterLink}
             to={`/plants/${planting.plant_id}`}
-            color="primary"
+            color="success"
             sx={{ textAlign: 'left', justifyContent: 'flex-start' }}
           >
             {getPlantName(planting)}
@@ -136,10 +168,31 @@ function Row(props) {
                 icon={<SeedlingIcon sx={{ color: 'white' }} />} 
                 label={format(new Date(planting.seedlings), 'MMM d, yyyy')}
                 size="small"
-                color="primary"
+                color="success"
                 sx={{ color: 'white' }}
               />
             </Tooltip>
+          ) : planting.planted ? (
+            // No seedling date but has been transplanted - show solid green chip with recommended date
+            (() => {
+              const recommendedDate = planting.plant?.seedlings != null ?
+                calculateSeedlingsDate(planting.plant, filterYear) : 
+                null;
+                
+              if (!recommendedDate) return '-';
+              
+              return (
+                <Tooltip title="Recommended date to start seedlings (plant has been planted outdoors)">
+                  <Chip 
+                    icon={<SeedlingIcon sx={{ color: 'white' }} />} 
+                    label={format(recommendedDate, 'MMM d, yyyy')}
+                    size="small"
+                    color="success"
+                    sx={{ color: 'white' }}
+                  />
+                </Tooltip>
+              );
+            })()
           ) : planting.plant?.seedlings != null ? (
             // No actual date, but plant has seedling data - show recommended date with outline
             (() => {
@@ -151,7 +204,7 @@ function Row(props) {
                     icon={<SeedlingIcon />} 
                     label={format(recommendedDate, 'MMM d, yyyy')}
                     size="small"
-                    color={isPast ? "warning" : "primary"}
+                    color={isPast ? "warning" : "success"}
                     variant="outlined"
                   />
                 </Tooltip>
@@ -161,13 +214,13 @@ function Row(props) {
         </TableCell>
         <TableCell>
           {planting.planted ? (
-            // Actual transplant date is set - show solid chip
-            <Tooltip title="Actual date when plants were transplanted outside">
+            // Actual plant outdoors date is set - show solid chip
+            <Tooltip title="Actual date when plants were planted outside">
               <Chip 
                 icon={<TransplantIcon sx={{ color: 'white' }} />} 
                 label={format(new Date(planting.planted), 'MMM d, yyyy')}
                 size="small"
-                color="primary"
+                color="success"
                 sx={{ color: 'white' }}
               />
             </Tooltip>
@@ -182,7 +235,7 @@ function Row(props) {
                     icon={<TransplantIcon />} 
                     label={format(recommendedDate, 'MMM d, yyyy')}
                     size="small"
-                    color={isPast ? "warning" : "primary"}
+                    color={isPast ? "warning" : "success"}
                     variant="outlined"
                   />
                 </Tooltip>
@@ -209,7 +262,7 @@ function Row(props) {
                   icon={<HarvestIcon />} 
                   label={format(recommendedDate, 'MMM d, yyyy')}
                   size="small"
-                  color={isPast ? "warning" : "success"}
+                  color="success"
                   variant="outlined"
                 />
               </Tooltip>
@@ -219,7 +272,7 @@ function Row(props) {
         <TableCell>{planting.location || '-'}</TableCell>
         <TableCell align="right">
           <IconButton 
-            color="primary" 
+            color="success" 
             onClick={() => handleOpenDialog('edit', planting)}
             aria-label="edit"
           >
@@ -249,6 +302,8 @@ function Row(props) {
 
 function Plantings() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [plantings, setPlantings] = useState([]);
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -268,11 +323,20 @@ function Plantings() {
     message: '',
     severity: 'success'
   });
-  const [filterYear, setFilterYear] = useState(new Date().getFullYear());
+  
+  // Get year from URL parameter or default to current year
+  const currentYear = new Date().getFullYear();
+  const yearParam = searchParams.get('year');
+  const [filterYear, setFilterYear] = useState(
+    yearParam && !isNaN(parseInt(yearParam)) ? parseInt(yearParam) : currentYear
+  );
+  
+  // Track overdue filter state
+  const [showOverdue, setShowOverdue] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, [filterYear]);
+  }, [filterYear, showOverdue]);
 
   useEffect(() => {
     // Check if we're redirected from plant details with intention to add a planting
@@ -357,6 +421,11 @@ function Plantings() {
     if (location.state?.addPlanting) {
       window.history.replaceState({}, document.title);
     }
+  };
+  
+  // Update URL when filter year changes
+  const updateYearInURL = (year) => {
+    setSearchParams({ year });
   };
 
   const handleInputChange = (e) => {
@@ -459,7 +528,6 @@ function Plantings() {
     );
   }
 
-  const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
   const years = Array.from(
     { length: nextYear - 2016 + 1 },
@@ -470,15 +538,25 @@ function Plantings() {
     <Box sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h1">Your Garden</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog('add')}
-          sx={{ color: 'white' }}
-        >
-          Add to Garden
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog('add')}
+            sx={{ color: 'white' }}
+          >
+            Add to Garden
+          </Button>
+          <Button
+            variant="outlined"
+            color="success"
+            startIcon={<UploadFileIcon />}
+            onClick={() => navigate('/import', { state: { activeTab: 1 } })}
+          >
+            Import
+          </Button>
+        </Box>
       </Box>
 
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -490,7 +568,16 @@ function Plantings() {
             <FormControl sx={{ minWidth: 120 }}>
               <Select
                 value={filterYear}
-                onChange={(e) => setFilterYear(e.target.value)}
+                onChange={(e) => {
+                  const newYear = e.target.value;
+                  setFilterYear(newYear);
+                  updateYearInURL(newYear);
+                  
+                  // If changing away from current year, turn off the overdue filter
+                  if (newYear !== currentYear && showOverdue) {
+                    setShowOverdue(false);
+                  }
+                }}
                 displayEmpty
                 size="small"
               >
@@ -502,6 +589,20 @@ function Plantings() {
               </Select>
             </FormControl>
           </Grid>
+          {filterYear === currentYear && (
+            <Grid item>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showOverdue}
+                    onChange={(e) => setShowOverdue(e.target.checked)}
+                    color="warning"
+                  />
+                }
+                label="Show only overdue plants"
+              />
+            </Grid>
+          )}
           <Grid item xs={12} sm={true}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
               <Typography variant="body2" color="text.secondary">
@@ -513,9 +614,40 @@ function Plantings() {
       </Paper>
       
       <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f8ff' }}>
-        <Typography variant="body2" color="text.secondary">
-          <strong>Tip:</strong> <b>Solid color chips</b> show your actual planting dates. <b>Outlined chips</b> show recommended dates based on ideal timing relative to last frost (April 18). <b>Orange chips</b> indicate recommended dates that have already passed. Click the arrow ↓ for more details about each plant's recommended schedule.
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          <strong>Tips:</strong>
         </Typography>
+        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+          <li>
+            <Typography variant="body2" color="text.secondary">
+              <b>Solid color chips</b> show your actual planting dates.
+            </Typography>
+          </li>
+          <li>
+            <Typography variant="body2" color="text.secondary">
+              <b>Outlined chips</b> show recommended dates based on ideal timing relative to last frost (April 18).
+            </Typography>
+          </li>
+          <li>
+            <Typography variant="body2" color="text.secondary">
+              <b>Orange chips</b> indicate recommended dates that have already passed.
+            </Typography>
+          </li>
+          <li>
+            <Typography variant="body2" color="text.secondary">
+              {filterYear === currentYear ? (
+                <>Use the "Show only overdue plants" toggle to filter your garden to plants that need attention.</>
+              ) : (
+                <>The overdue plants filter is only available when viewing the current year.</>
+              )}
+            </Typography>
+          </li>
+          <li>
+            <Typography variant="body2" color="text.secondary">
+              Click the arrow ↓ for more details about each plant's recommended schedule.
+            </Typography>
+          </li>
+        </ul>
       </Paper>
 
       {error && (
@@ -531,8 +663,8 @@ function Plantings() {
               <TableCell width="50px" /> {/* Expansion control column */}
               <TableCell width="60px">Type</TableCell>
               <TableCell>Plant</TableCell>
-              <TableCell>Seedling Date</TableCell>
-              <TableCell>Transplant Date</TableCell>
+              <TableCell>Start Seedlings</TableCell>
+              <TableCell>Plant Outdoors</TableCell>
               <TableCell>Estimated Harvest</TableCell>
               <TableCell>Location</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -546,16 +678,19 @@ function Plantings() {
                 </TableCell>
               </TableRow>
             ) : (
-              plantings.map((planting) => (
-                <Row 
-                  key={planting.id} 
-                  planting={planting} 
-                  getPlantName={getPlantName} 
-                  handleOpenDialog={handleOpenDialog} 
-                  handleDelete={handleDelete}
-                  filterYear={filterYear}
-                />
-              ))
+              // Filter plantings if overdue filter is active
+              plantings
+                .filter(planting => !showOverdue || isPlantingOverdue(planting, filterYear))
+                .map((planting) => (
+                  <Row 
+                    key={planting.id} 
+                    planting={planting} 
+                    getPlantName={getPlantName} 
+                    handleOpenDialog={handleOpenDialog} 
+                    handleDelete={handleDelete}
+                    filterYear={filterYear}
+                  />
+                ))
             )}
           </TableBody>
         </Table>
@@ -611,7 +746,7 @@ function Plantings() {
               margin="normal"
               fullWidth
               id="seedlings"
-              label="Seedlings Start Date (optional)"
+              label="Start Seedlings Date (optional)"
               name="seedlings"
               type="date"
               value={formData.seedlings}
@@ -622,7 +757,7 @@ function Plantings() {
               margin="normal"
               fullWidth
               id="planted"
-              label="Planting Date (optional)"
+              label="Plant Outdoors Date (optional)"
               name="planted"
               type="date"
               value={formData.planted}
@@ -633,7 +768,7 @@ function Plantings() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ color: 'white' }}>
+          <Button onClick={handleSubmit} variant="contained" color="success" sx={{ color: 'white' }}>
             {dialogMode === 'add' ? 'Add to Garden' : 'Save Changes'}
           </Button>
         </DialogActions>

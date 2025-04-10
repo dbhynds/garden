@@ -18,7 +18,8 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import NatureIcon from '@mui/icons-material/Nature';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FenceIcon from '@mui/icons-material/Fence';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 function Layout({ children }) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
@@ -33,7 +34,8 @@ function Layout({ children }) {
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Plants', icon: <NatureIcon />, path: '/plants' },
-    { text: 'Your Garden', icon: <CalendarMonthIcon />, path: '/plantings' }
+    { text: 'Your Garden', icon: <FenceIcon />, path: '/plantings' },
+    { text: 'Import', icon: <UploadFileIcon />, path: '/import' }
   ];
 
   const drawer = (
@@ -44,7 +46,7 @@ function Layout({ children }) {
       onKeyDown={toggleDrawer(false)}
     >
       <Box sx={{ p: 2 }}>
-        <Typography variant="h6" component="div" sx={{ color: 'primary.main' }}>
+        <Typography variant="h6" component="div" sx={{ color: 'success.main' }}>
           Garden Planner
         </Typography>
       </Box>
@@ -69,7 +71,7 @@ function Layout({ children }) {
 
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="static" color="success">
         <Toolbar>
           <IconButton
             size="large"

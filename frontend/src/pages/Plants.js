@@ -30,7 +30,8 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FenceIcon from '@mui/icons-material/Fence';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { getPlantsAPI, createPlantAPI, updatePlantAPI, deletePlantAPI, createPlantingAPI } from '../services/api';
 
 function Plants() {
@@ -54,6 +55,11 @@ function Plants() {
     open: false,
     message: '',
     severity: 'success'
+  });
+  const [plantingDetailsOpen, setPlantingDetailsOpen] = useState(false);
+  const [plantingDetails, setPlantingDetails] = useState({
+    seedlings: '',
+    planted: ''
   });
   const currentYear = new Date().getFullYear();
 
@@ -223,6 +229,30 @@ function Plants() {
     }
   };
   
+  const handleOpenPlantingDetails = () => {
+    if (selectedPlants.length === 0) {
+      return;
+    }
+    // Reset planting details
+    setPlantingDetails({
+      seedlings: '',
+      planted: ''
+    });
+    setPlantingDetailsOpen(true);
+  };
+  
+  const handleClosePlantingDetails = () => {
+    setPlantingDetailsOpen(false);
+  };
+  
+  const handlePlantingDetailsChange = (e) => {
+    const { name, value } = e.target;
+    setPlantingDetails({
+      ...plantingDetails,
+      [name]: value
+    });
+  };
+  
   const handleCreatePlantings = async () => {
     if (selectedPlants.length === 0) {
       return;
@@ -231,15 +261,23 @@ function Plants() {
     try {
       setLoading(true);
       
+      // Close the dialog
+      setPlantingDetailsOpen(false);
+      
       // Create plantings for each selected plant
       const plantingPromises = selectedPlants.map(plantId => {
+        // Only include non-empty values in the payload
         const plantingData = {
           year: currentYear,
           plant_id: plantId,
-          seedlings: null,
-          planted: null,
-          location: null
+          planted: plantingDetails.planted || null
         };
+        
+        // Only add seedlings to payload if a value was provided
+        if (plantingDetails.seedlings) {
+          plantingData.seedlings = plantingDetails.seedlings;
+        }
+        
         return createPlantingAPI(plantingData);
       });
       
@@ -292,8 +330,8 @@ function Plants() {
               <Button
                 variant="contained"
                 color="success"
-                startIcon={<CalendarMonthIcon />}
-                onClick={handleCreatePlantings}
+                startIcon={<FenceIcon />}
+                onClick={handleOpenPlantingDetails}
                 sx={{ color: 'white' }}
               >
                 Add {selectedPlants.length} plants to your garden
@@ -302,12 +340,20 @@ function Plants() {
           )}
           <Button
             variant="contained"
-            color="primary"
+            color="success"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog('add')}
             sx={{ color: 'white' }}
           >
             Add Plant
+          </Button>
+          <Button
+            variant="outlined"
+            color="success"
+            startIcon={<UploadFileIcon />}
+            onClick={() => navigate('/import')}
+          >
+            Import
           </Button>
         </Box>
       </Box>
@@ -333,8 +379,8 @@ function Plants() {
               <TableCell>Name</TableCell>
               <TableCell>Category</TableCell>
               {/* <TableCell>Type</TableCell> */}
-              <TableCell>Seedlings</TableCell>
-              <TableCell>Transplant</TableCell>
+              <TableCell>Start Seedlings</TableCell>
+              <TableCell>Plant Outdoors</TableCell>
               <TableCell>Harvest</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -361,16 +407,33 @@ function Plants() {
                     />
                   </TableCell>
                   <TableCell component="th" scope="row" id={`plant-${plant.id}`}>
-                    {plant.name}
+                    <Button
+                      component={RouterLink}
+                      to={`/plants/${plant.id}`}
+                      color="success"
+                      sx={{ textAlign: 'left', justifyContent: 'flex-start', padding: '0' }}
+                    >
+                      {plant.name}
+                    </Button>
                   </TableCell>
                   <TableCell>{plant.category}</TableCell>
                   {/* <TableCell>{plant.type || '-'}</TableCell> */}
-                  <TableCell>{plant.seedlings !== null ? plant.seedlings : '-'}</TableCell>
-                  <TableCell>{plant.transplant !== null ? plant.transplant : '-'}</TableCell>
-                  <TableCell>{plant.harvest !== null ? plant.harvest : '-'}</TableCell>
+                  <TableCell>
+                    {plant.seedlings !== null ? 
+                      `${Math.abs(plant.seedlings)} days ${plant.seedlings < 0 ? 'before' : 'after'} last frost` : 
+                      '-'}
+                  </TableCell>
+                  <TableCell>
+                    {plant.transplant !== null ? 
+                      `${Math.abs(plant.transplant)} days ${plant.transplant < 0 ? 'before' : 'after'} last frost` : 
+                      '-'}
+                  </TableCell>
+                  <TableCell>
+                    {plant.harvest !== null ? `${plant.harvest} days to maturity` : '-'}
+                  </TableCell>
                   <TableCell align="right">
                     <IconButton 
-                      color="primary" 
+                      color="success" 
                       onClick={() => handleOpenDialog('edit', plant)}
                       aria-label="edit"
                     >
@@ -438,7 +501,7 @@ function Plants() {
               margin="normal"
               fullWidth
               id="seedlings"
-              label="Seedlings (days before/after last frost)"
+              label="Start Seedlings (days before/after last frost)"
               name="seedlings"
               type="number"
               value={formData.seedlings}
@@ -449,7 +512,7 @@ function Plants() {
               margin="normal"
               fullWidth
               id="transplant"
-              label="Transplant (days before/after last frost)"
+              label="Plant Outdoors (days before/after last frost)"
               name="transplant"
               type="number"
               value={formData.transplant}
@@ -471,8 +534,56 @@ function Plants() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ color: 'white' }}>
+          <Button onClick={handleSubmit} variant="contained" color="success" sx={{ color: 'white' }}>
             {dialogMode === 'add' ? 'Add Plant' : 'Save Changes'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Planting Details Dialog */}
+      <Dialog open={plantingDetailsOpen} onClose={handleClosePlantingDetails} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Add Planting Details (Optional)
+        </DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Enter optional dates for the {selectedPlants.length} selected plants. 
+              These values will be applied to all plants being added to your garden.
+              You can modify individual plants and add locations later in the garden view.
+            </Typography>
+            
+            <TextField
+              margin="normal"
+              fullWidth
+              id="seedlings"
+              label="Start Seedlings Date (optional)"
+              name="seedlings"
+              type="date"
+              value={plantingDetails.seedlings}
+              onChange={handlePlantingDetailsChange}
+              InputLabelProps={{ shrink: true }}
+              helperText="Date when you started (or plan to start) seedlings indoors"
+            />
+            
+            <TextField
+              margin="normal"
+              fullWidth
+              id="planted"
+              label="Plant Outdoors Date (optional)"
+              name="planted"
+              type="date"
+              value={plantingDetails.planted}
+              onChange={handlePlantingDetailsChange}
+              InputLabelProps={{ shrink: true }}
+              helperText="Date when you planted (or plan to plant) outside"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePlantingDetails}>Cancel</Button>
+          <Button onClick={handleCreatePlantings} variant="contained" color="success" sx={{ color: 'white' }}>
+            Add to Garden
           </Button>
         </DialogActions>
       </Dialog>

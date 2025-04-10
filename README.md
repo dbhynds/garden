@@ -17,7 +17,8 @@ A full-stack application for managing garden plants and plantings with a FastAPI
 - Year-based filtering for plantings
 - Automated testing with Jest and React Testing Library
 - Planting schedule calculations based on last frost date (April 18)
-- Expandable rows showing recommended dates for starting seeds, transplanting, and harvesting
+- Expandable rows showing recommended dates for starting seedlings, planting outdoors, and harvesting
+- CSV import functionality for bulk adding plants
 
 ## Getting Started
 
@@ -104,7 +105,7 @@ Plants have the following properties:
 - `category` (string, required): Plant category (one of: "green", "tomato", "pepper", "vegetable", "herb", "flower")
 - `type` (string, optional): Plant type
 - `seedlings` (integer, optional): Days seedlings should be started relative to last frost
-- `transplant` (integer, optional): Days that seedlings or seeds should be planted outside relative to the last frost
+- `transplant` (integer, optional): Days that seedlings or seeds should be planted outdoors relative to the last frost
 - `harvest` (integer, optional): Days to maturity
 
 ### Planting Model
@@ -113,5 +114,29 @@ Plantings have the following properties:
 - `year` (integer, required): Planting year
 - `plant_id` (integer, required): Reference to an existing plant
 - `seedlings` (datetime, optional): Date when seedlings were started
-- `planted` (datetime, optional): Date when plants were planted outside
+- `planted` (datetime, optional): Date when plants were planted outdoors
 - `location` (string, optional): Where the plant was planted
+
+## CSV Import
+
+The application supports importing plants in bulk via CSV file. The CSV file should contain the following columns:
+
+- `Plant` (required): Plant name
+- `Type` (required): One-letter code for plant category:
+  - T = tomato
+  - P = pepper
+  - V = vegetable
+  - G = green
+  - H = herb
+  - F = flower
+- `Seedlings` (optional): Days before/after last frost to start seedlings (negative values = before frost)
+- `Transplant` (optional): Days before/after last frost to plant outdoors
+- `Harvest` (optional): Days to maturity
+
+Example CSV format:
+```
+Plant,Type,Seedlings,Transplant,Harvest
+Broccoli,V,-42,-14,75
+Tomato,T,-28,28,80
+Basil,H,,28,
+```

@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import NatureIcon from '@mui/icons-material/Nature';
 import LocalFloristIcon from '@mui/icons-material/LocalFlorist';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FenceIcon from '@mui/icons-material/Fence';
 
 function Home() {
   return (
@@ -30,7 +30,7 @@ function Home() {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <LocalFloristIcon color="primary" fontSize="large" sx={{ mr: 1 }} />
+                <LocalFloristIcon color="success" fontSize="large" sx={{ mr: 1 }} />
                 <Typography variant="h2">
                   Plants
                 </Typography>
@@ -40,7 +40,7 @@ function Home() {
               </Typography>
               <Button 
                 variant="contained" 
-                color="primary"
+                color="success"
                 component={RouterLink}
                 to="/plants"
                 startIcon={<LocalFloristIcon />}
@@ -56,7 +56,7 @@ function Home() {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CalendarMonthIcon color="success" fontSize="large" sx={{ mr: 1 }} />
+                <FenceIcon color="success" fontSize="large" sx={{ mr: 1 }} />
                 <Typography variant="h2">
                   Your Garden
                 </Typography>
@@ -69,7 +69,7 @@ function Home() {
                 color="success"
                 component={RouterLink}
                 to="/plantings"
-                startIcon={<CalendarMonthIcon />}
+                startIcon={<FenceIcon />}
                 sx={{ color: 'white' }}
               >
                 View Your Garden

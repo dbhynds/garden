@@ -30,11 +30,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - React application with Material UI for components
 - React Router for navigation
 - Axios for API requests
-- Pages: Home, Plants, PlantDetails, Plantings
+- Pages: Home, Plants, PlantDetails, Plantings, Import
 - Components organized in `/components` directory
 - Tests using Jest and React Testing Library in `__tests__` directory
 - Date calculations for planting schedules based on last frost date (April 18)
 - Expandable rows in Plantings view to show recommended dates
+- CSV import functionality for bulk adding plants with one-letter category codes (T=tomato, P=pepper, V=vegetable, G=green, H=herb, F=flower)
 
 ## Code Style Guidelines
 
@@ -47,3 +48,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Database**: Use SQLAlchemy ORM with dependency injection pattern
 - **Validation**: Use Pydantic's Literal for enum-like fields (e.g., plant categories)
 - **Testing**: Create test fixtures in conftest.py, use separate test files per resource
+
+## Terminology Guidelines
+
+- Use action-oriented terminology in the UI:
+  - "Start Seedlings" instead of "Seedlings" (when referring to the action of starting seeds indoors)
+  - "Plant Outdoors" instead of "Transplant" (when referring to moving plants outside)
+- Be consistent with these terms across all pages: Plants, Plantings, and PlantDetails

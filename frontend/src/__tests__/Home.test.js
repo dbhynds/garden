@@ -30,12 +30,12 @@ describe('Home Component', () => {
       </BrowserRouter>
     );
     
-    // Check if Plants and Plantings sections are in the document using more specific queries
+    // Check if Plants and Your Garden sections are in the document using more specific queries
     expect(screen.getByRole('heading', { name: /Plants/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Plantings/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Your Garden/i })).toBeInTheDocument();
     
-    // Check if the View Plants and View Plantings buttons are in the document
+    // Check if the navigation buttons are in the document
     expect(screen.getByText('View Plants')).toBeInTheDocument();
-    expect(screen.getByText('View Plantings')).toBeInTheDocument();
+    expect(screen.getByText('View Your Garden')).toBeInTheDocument();
   });
 });

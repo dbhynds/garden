@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import Plants from './pages/Plants';
 import PlantDetails from './pages/PlantDetails';
 import Plantings from './pages/Plantings';
+import Import from './pages/Import';
 import NotFound from './pages/NotFound';
 
 // Create a theme
@@ -48,6 +49,7 @@ function App() {
           <Route path="/plants" element={<Plants />} />
           <Route path="/plants/:id" element={<PlantDetails />} />
           <Route path="/plantings" element={<Plantings />} />
+          <Route path="/import" element={<Import />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

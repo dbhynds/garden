@@ -6,7 +6,7 @@ import {
   Chip,
   Paper
 } from '@mui/material';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FenceIcon from '@mui/icons-material/Fence';
 import SeedlingIcon from '@mui/icons-material/Spa';
 import TransplantIcon from '@mui/icons-material/Grass';
 import HarvestIcon from '@mui/icons-material/Agriculture';
@@ -30,7 +30,7 @@ const PlantingDates = ({ plant, year }) => {
   return (
     <Paper sx={{ p: 2, mt: 2, bgcolor: '#f8f9fa' }}>
       <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
-        <CalendarMonthIcon fontSize="small" sx={{ mr: 1 }} />
+        <FenceIcon fontSize="small" sx={{ mr: 1 }} />
         Recommended Planting Dates for {year}
       </Typography>
       
@@ -40,7 +40,7 @@ const PlantingDates = ({ plant, year }) => {
             <Chip 
               icon={<SeedlingIcon />} 
               label={dates.seedlingsFormatted}
-              color="primary"
+              color="success"
               variant="outlined"
               size="small"
               sx={{ fontWeight: 'medium' }}
@@ -53,7 +53,7 @@ const PlantingDates = ({ plant, year }) => {
             <Chip 
               icon={<TransplantIcon />} 
               label={dates.transplantFormatted}
-              color="primary"
+              color="success"
               variant="outlined"
               size="small"
               sx={{ fontWeight: 'medium' }}
@@ -66,7 +66,7 @@ const PlantingDates = ({ plant, year }) => {
             <Chip 
               icon={<HarvestIcon />} 
               label={dates.harvestFormatted}
-              color="primary"
+              color="success"
               variant="outlined"
               size="small"
               sx={{ fontWeight: 'medium' }}
@@ -76,9 +76,9 @@ const PlantingDates = ({ plant, year }) => {
       </Box>
       
       <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-        <strong>Recommendations:</strong> Start seeds {dates.seedlingsDays ? 
+        <strong>Recommendations:</strong> Start seedlings {dates.seedlingsDays ? 
           <span>{Math.abs(dates.seedlingsDays)} days {dates.seedlingsDays < 0 ? 'before' : 'after'} last frost</span> : 'N/A'}, 
-        transplant {dates.transplantDays ? 
+        plant outdoors {dates.transplantDays ? 
           <span>{Math.abs(dates.transplantDays)} days {dates.transplantDays < 0 ? 'before' : 'after'} last frost</span> : 'N/A'}
       </Typography>
     </Paper>
